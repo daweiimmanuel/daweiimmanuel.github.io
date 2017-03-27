@@ -1,0 +1,154 @@
+CREATE object 'wordLists' yang berisi array 2D dengan struktur [topik][kosakata]
+	'topik' = 'negara', 'makanan', 'tubuh manusia'
+	kosakata untuk negara = argentina, australia, brazil, belgium, canada, chile, china, denmark, egypt, france, germany, honduras, indonesia, italy, japan, kenya, madagascar, maldives, netherlands, oman, russia, switzerland, tanzania, ukraine, venezuela, yemen, zambia
+	kosakata untuk makanan = almond, apple, bacon, beef, caviar, cilantro, dairy, digest, edible, entree, fillet, frosting, gastronomy, guacamole, halibut, honeydew, icing, jackfruit, kumquat, legumes, licorice, meringue, molasses, nutmeg, okra, parsnip, quiche, risotto, spinach, turnip, utensils, venison, wok, yeast, zucchini
+	kosakata untuk tubuh manusia = abdomen, bladder, buttocks, cartilage, clavicle, coccyx, diaphragm, elbow, esophagus, fibula, follicle, gallbladder, humerus, iris, jaw, kidney, larynx, liver, mandible, molar, navel, ovary, patella, pituitary, radius, rectum, ribs, sacrum, scapula, spleen, tendon, tissue, ulna, uvula, vein, wrist
+
+CREATE object 'Hangman'
+	ASSIGN 'bodyParts' = 0
+	CREATE method 'addBodyPart'
+		melakukan pertambahan 1 kepada 'bodyParts'
+	CREATE method 'isComplete'
+		mendefinisikan status saat 'bodyParts' lebih atau sama dengan 7
+
+CREATE object 'WordToGuess'
+	CREATE method 'initialize' dengan parameter 'listOfWords'
+		ADD 'listOfWords' property sama dengan parameter 'listOfWords'
+		ADD 'generateKey' property dengan parameter 'selectWord' property
+		ADD 'generateRevealedLetters' property
+
+	CREATE method 'selectWord' tanpa parameter
+		RETURN array property 'listOfWords' dengan index ke hasil random dari total 'listOfWords'
+		
+	CREATE method 'setCustomWord'
+		ADD property 'generateKey' dengan parameter 'customWord'
+		ADD property 'generateRevealedLetters'
+		
+	CREATE method 'generateKey' dengan parameter 'word'
+		ADD property 'key' dengan parameter 'word', assign key dengan value word yang di split per huruf
+		
+	CREATE method 'generateRevealedLetters' tanpa parameter
+		ADD property 'revealedLetters' berupa array kosong
+		FOR setiap pengurangan satu dari i sama dengan panjang dari 'key' sampai dengan i lebih besar dari 0
+			EXECUTE method 'push' string kosong pada property 'revealedLetters'
+	
+	CREATE method 'hasGuessedLetter' dengan parameter 'guessedLetter'
+		RETURN true or false setelah mengecek apakah property 'key' mengandung value 'unguessedLetter' sama dengan 'guessedLetter'
+		
+	CREATE method 'revealLetters' dengan parameter 'guessedLetter'
+		ASSIGN variable 'key' sama dengan property 'key'
+		ASSIGN property 'revealedLetters' sama dengan array dari property 'revealedLetters' dengan kondisi
+			IF 'guessedLetter' === 'key[index]'
+			THEN RETURN 'guessedLetter'
+			ELSE RETURN 'revealedLetter'
+	
+	CREATE method 'isRevealed' tanpa parameter
+		RETURN true saat tidak ada values of 'revealedLetters' === ''
+		
+CREATE object 'Game'
+	ASSIGN 'listOfLetters' dari a - z dalam array
+	
+	CREATE method 'initialize'
+		ADD property 'guessedLetters' berupa array kosong
+		ADD property 'incorrectGuessedLetters' berupa array kosong
+		ASSIGN var 'hangman' sebagai object dengan membuat object 'Hangman'
+		ADD property 'setHangman' dengan parameter 'hangman'
+		
+		ASSIGN var 'wordToGuess' sebagai object dengan membuat object 'WordToGuess'
+		INITIALIZE 'wordToGuess' dengan parameter 'listOfWords'
+		
+	CREATE method 'setWordToGuess' dengan parameter 'word'
+		ADD property 'wordToGuess' berisi 'word'
+	
+	CREATE method 'setHangman' dengan parameter 'hangman'
+		ADD property 'hangman' berisi 'hangman'
+		
+	CREATE method 'makeGuess' dengan parameter 'letter'
+		jalankan method 'markLetterAsGuessed' dengan parameter 'letter'
+		IF property 'hasGuessedLetter' dari 'wordToGuess' dengan parameter 'letter' is true
+		THEN EXECUTE method 'revealLetters' dengan parameter 'letter'
+		ELSE
+			EXECUTE method 'markLetterAsIncorrectGuess' dengan parameter 'letter'
+			EXECUTE method 'addBodyPart'
+		
+	CREATE method 'markLetterAsGuessed' dengan parameter 'letter'
+		EXECUTE method 'push' pada property 'guessedLetters' dengan parameter 'letter'
+		
+	CREATE method 'hasBeenGuessed' dengan parameter 'letter'
+		RETURN true if any values from property 'guessedLetters' have 'guessedLetter' === 'letter'
+	
+	CREATE method 'markLetterAsIncorrectGuess' dengan parameter 'letter'
+		EXECUTE method 'push' pada property 'incorrectGuessedLetters' dengan parameter 'letter'
+	
+	CREATE method 'isOver' dengan parameter 'hangman' dan 'wordToGuess'
+		RETURN true dengan kondisi 'hangman'.'isComplete' atau 'wordToGuess'.'isRevealed'
+	
+	Ensure that all your function is called once all the DOM elements of the page are ready to be used
+	
+	DECLARE variable 'game'
+	CREATE function 'newGame' dengan parameter 'listOfWords'
+		ASSIGN 'game' sebagai object dengan membuat object 'Game'
+		INITIALIZE 'game' dengan parameter 'listOfWords'
+	
+	SELECT id 'incorrect-guesses' dan class 'h3' untuk dikosongkan kemudian ditempel dengan 'Incorrect Guesses: '
+	
+	SELECT id 'word-container' untuk dikosongkan kemudian
+	LIST setiap item dari 'revealedLetters' dari 'wordToGuess' dari 'game' agar menampilkan hurufnya
+	
+	SELECT id 'unguessed-letter' untuk dikosongkan kemudian
+	LIST setiap item dari 'listOfLetters' dari 'game' agar menampilkan huruf yang belum ditebak
+	
+	SELECT id 'letter-choice' yang diklik
+		TAMBAHKAN class 'muted'
+		ASSIGN var 'guessedLetter' dengan text pada huruf yang diklik
+		
+		IF 'guessedLetter' telah ditebak
+		THEN
+			INFO in console 'if this has been guessed'
+			LOG 'guessedLetter'
+			ALERT 'That letter has already been guessed. Please select another letter.'
+		ELSE 
+			INFO in console 'The guessed letters'
+			LOG 'guessedLetters'
+		
+		SELECT id 'word-container' untuk dikosongkan
+		LIST setiap item dari 'revealedLetters' dari 'wordToGuess' dari 'game' tampilkan hurufnya
+		
+		SELECT div dengan id 'hangman-sprite' remove class kemudian add class 'hangman-sprite' dengan tambahan game.hangman.bodyParts
+		
+		SELECT id 'incorrect-guesses' dan  class 'h3' kosongkan dan tempel dengan 'Incorrect Guesses: '
+		LIST setiap item dari 'incorrectGuessedLetters' dari 'game' untuk menempelkan huruf dan ' '
+		
+		IF 'game.isOver' is true
+		THEN
+			EXECUTE 'winningCondition' dengan parameter 'game'
+	END
+		
+	CREATE function 'winningCondition' dengan parameter 'gameObject'
+	IF 'gameObject.hangman.isComplete' is true
+	THEN
+		SELECT id 'word-container' kosongkan kemudian
+		LIST setiap item dari 'key' dari 'wordToGuess' dari 'gameObject' untuk menampilkan huruf dengan warna merah
+		ALERT 'You lose!'
+		SELECT 'button play-again' untuk dimunculkan
+		SET array 'game.guessedLetters' menjadi kosong
+	ELSE IF 'gameObject.wordToGuess.isRevealed' is true
+	THEN
+		SELECT id 'word-container' untuk dikosongkan kemudian
+		LIST setiap item dari 'key' dari 'wordToGuess' dari 'gameObject' untuk menampilkan huruf dengan warna hijau
+		ALERT 'You win!'
+		SELECT 'button play-again' untuk dimunculkan
+		SET array 'game.guessedLetters' menjadi kosong
+	END
+	
+	SELECT id 'choose-category ul li' yang diklik
+	SET variable 'categoryChoice' dengan attribute 'id' dari category yang diklik
+	SELECT class 'gamesetup' untuk fadeOut
+	SELECT class 'initially-hidden' fadeIn delay 400 ms
+	EXECUTE function 'newGame' dengan parameter 'wordLists[categoryChoice]'
+	
+	SELECT id 'play-again' yang diklik
+	EXECUTE method 'fadeOut' pada button yang diklik
+	SELECT class 'initially-hidden' untuk fadeOut
+	SELECT class 'game-setup' untuk fadeIn dengan delay 400 ms
+	SELECT id 'hangman-sprite' remove class kemudian add class 'hangman-sprite0' dengan delay 400 ms
